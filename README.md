@@ -24,6 +24,13 @@ Production-ready multi-tenant Telegram monetization platform for paid subscripti
 - Java 21
 
 ### Generate a master key
+Create a `.env` file from the template so Docker Compose can read the value:
+```bash
+cp .env.example .env
+```
+
+Then generate and paste a base64 key.
+
 ```bash
 python - <<'PY'
 import os, base64
@@ -31,7 +38,7 @@ print(base64.b64encode(os.urandom(32)).decode())
 PY
 ```
 
-PowerShell:
+PowerShell (no Python needed):
 ```powershell
 $bytes = New-Object Byte[] 32
 [System.Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($bytes)
@@ -46,13 +53,16 @@ mvn -q -DskipTests package
 docker compose up --build
 ```
 
-PowerShell:
+PowerShell (recommended on Windows):
 ```powershell
+Copy-Item .env.example .env
 $env:TELEGRAM_PAY_MASTER_KEY="REPLACE_WITH_BASE64_KEY"
 $env:PUBLIC_BASE_URL="https://your-public-host"
-mvn -q -DskipTests package
+(Get-Content .env) -replace 'REPLACE_WITH_BASE64_KEY',$env:TELEGRAM_PAY_MASTER_KEY | Set-Content .env
 docker compose up --build
 ```
+
+> Note for Windows users: commands like `python - <<'PY'` work in bash but not in CMD/PowerShell. Use the PowerShell snippet above or install Python properly.
 
 ## API Overview
 All creator endpoints require `X-Api-Key` header, except onboarding.
