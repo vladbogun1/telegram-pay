@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>telegram-pay Console</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+  <link rel="stylesheet" href="/assets/app.css" />
+</head>
+<body class="grey lighten-4">
+<nav class="indigo">
+  <div class="nav-wrapper container">
+    <a href="#" class="brand-logo">telegram-pay</a>
+    <ul class="right">
+      <li><a href="#" id="save-api-key">Save API Key</a></li>
+    </ul>
+  </div>
+</nav>
+
+<main class="container section">
+  <div class="row">
+    <div class="col s12 m6">
+      <div class="card">
+        <div class="card-content">
+          <span class="card-title">Creator onboarding</span>
+          <div class="input-field">
+            <input id="creator-name" type="text" />
+            <label for="creator-name">Creator name</label>
+          </div>
+          <button class="btn indigo" id="create-creator">Create creator</button>
+          <p class="helper-text">You will receive an API key to use in the console.</p>
+          <div class="section">
+            <div class="input-field">
+              <input id="api-key" type="text" />
+              <label for="api-key">API key</label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-content">
+          <span class="card-title">Wallet Pay config</span>
+          <div class="input-field">
+            <input id="wallet-key" type="text" />
+            <label for="wallet-key">Store API key</label>
+          </div>
+          <div class="input-field">
+            <input id="wallet-return" type="text" />
+            <label for="wallet-return">Return URL</label>
+          </div>
+          <div class="input-field">
+            <input id="wallet-fail" type="text" />
+            <label for="wallet-fail">Fail return URL</label>
+          </div>
+          <button class="btn indigo" id="save-wallet">Save Wallet Pay config</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-content">
+          <span class="card-title">Bot registration</span>
+          <div class="input-field">
+            <input id="bot-name" type="text" />
+            <label for="bot-name">Bot name</label>
+          </div>
+          <div class="input-field">
+            <input id="bot-token" type="text" />
+            <label for="bot-token">Bot token</label>
+          </div>
+          <button class="btn indigo" id="register-bot">Register bot</button>
+          <div class="section">
+            <ul class="collection" id="bot-list"></ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col s12 m6">
+      <div class="card">
+        <div class="card-content">
+          <span class="card-title">Chat connections</span>
+          <div class="chip indigo lighten-4" id="selected-bot">No bot selected</div>
+          <div class="input-field">
+            <input id="chat-bot-id" type="number" />
+            <label for="chat-bot-id">Bot instance ID</label>
+          </div>
+          <div class="input-field">
+            <input id="chat-telegram-id" type="text" />
+            <label for="chat-telegram-id">Telegram chat ID</label>
+          </div>
+          <div class="input-field">
+            <input id="chat-title" type="text" />
+            <label for="chat-title">Chat title</label>
+          </div>
+          <div class="input-field">
+            <input id="chat-type" type="text" />
+            <label for="chat-type">Type (channel/supergroup)</label>
+          </div>
+          <button class="btn indigo" id="register-chat">Connect chat</button>
+          <div class="section">
+            <ul class="collection" id="chat-list"></ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-content">
+          <span class="card-title">Products</span>
+          <div class="input-field">
+            <input id="product-chat-id" type="number" />
+            <label for="product-chat-id">Chat ID</label>
+          </div>
+          <div class="input-field">
+            <input id="product-name" type="text" />
+            <label for="product-name">Product name</label>
+          </div>
+          <div class="input-field">
+            <input id="product-price" type="number" />
+            <label for="product-price">Price (Stars)</label>
+          </div>
+          <div class="input-field">
+            <input id="product-duration" type="number" />
+            <label for="product-duration">Duration days</label>
+          </div>
+          <p>
+            <label>
+              <input type="checkbox" id="product-recurring" />
+              <span>Recurring monthly</span>
+            </label>
+          </p>
+          <button class="btn indigo" id="create-product">Create product</button>
+          <div class="section">
+            <ul class="collection" id="product-list"></ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-content">
+          <span class="card-title">Orders & payments</span>
+          <div class="input-field">
+            <input id="invoice-product-id" type="number" />
+            <label for="invoice-product-id">Product ID</label>
+          </div>
+          <div class="input-field">
+            <input id="invoice-bot-id" type="number" />
+            <label for="invoice-bot-id">Bot instance ID</label>
+          </div>
+          <div class="input-field">
+            <input id="invoice-user" type="text" />
+            <label for="invoice-user">Telegram user ID</label>
+          </div>
+          <button class="btn indigo" id="create-invoice">Send Stars invoice</button>
+          <button class="btn teal" id="create-wallet-order">Create Wallet Pay order</button>
+          <div class="section">
+            <ul class="collection" id="order-list"></ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-content">
+          <span class="card-title">Dashboard summary</span>
+          <button class="btn indigo" id="load-dashboard">Load summary</button>
+          <div class="section" id="dashboard-summary"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+<script src="/assets/app.js"></script>
+</body>
+</html>

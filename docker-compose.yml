@@ -1,0 +1,30 @@
+services:
+  mysql:
+    image: mysql:8.4
+    environment:
+      MYSQL_DATABASE: telegram_pay
+      MYSQL_USER: telegram
+      MYSQL_PASSWORD: telegram
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "3306:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p$${MYSQL_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+  app:
+    build: .
+    env_file:
+      - .env
+    environment:
+      DB_URL: jdbc:mysql://mysql:3306/telegram_pay
+      DB_USER: telegram
+      DB_PASSWORD: telegram
+      TELEGRAM_PAY_MASTER_KEY: ${TELEGRAM_PAY_MASTER_KEY:?Set TELEGRAM_PAY_MASTER_KEY}
+      PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-http://localhost:8080}
+    ports:
+      - "8080:8080"
+    depends_on:
+      mysql:
+        condition: service_healthy
