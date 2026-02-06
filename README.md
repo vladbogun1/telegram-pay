@@ -31,10 +31,25 @@ print(base64.b64encode(os.urandom(32)).decode())
 PY
 ```
 
+PowerShell:
+```powershell
+$bytes = New-Object Byte[] 32
+[System.Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($bytes)
+[Convert]::ToBase64String($bytes)
+```
+
 ### Run with Docker Compose
 ```bash
 export TELEGRAM_PAY_MASTER_KEY=REPLACE_WITH_BASE64_KEY
 export PUBLIC_BASE_URL=https://your-public-host
+mvn -q -DskipTests package
+docker compose up --build
+```
+
+PowerShell:
+```powershell
+$env:TELEGRAM_PAY_MASTER_KEY="REPLACE_WITH_BASE64_KEY"
+$env:PUBLIC_BASE_URL="https://your-public-host"
 mvn -q -DskipTests package
 docker compose up --build
 ```
