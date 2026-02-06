@@ -8,24 +8,18 @@ import com.example.telegrampay.repository.EntitlementRepository;
 import com.example.telegrampay.repository.OrderRepository;
 import com.example.telegrampay.service.CreatorLookupService;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/dashboard")
+@RequiredArgsConstructor
 public class DashboardController {
     private final CreatorLookupService creatorLookupService;
     private final OrderRepository orderRepository;
     private final EntitlementRepository entitlementRepository;
-
-    public DashboardController(CreatorLookupService creatorLookupService,
-                               OrderRepository orderRepository,
-                               EntitlementRepository entitlementRepository) {
-        this.creatorLookupService = creatorLookupService;
-        this.orderRepository = orderRepository;
-        this.entitlementRepository = entitlementRepository;
-    }
 
     @GetMapping
     public DashboardSummary summary() {

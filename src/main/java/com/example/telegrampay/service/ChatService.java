@@ -5,15 +5,13 @@ import com.example.telegrampay.domain.Chat;
 import com.example.telegrampay.domain.Creator;
 import com.example.telegrampay.repository.ChatRepository;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 public class ChatService {
     private final ChatRepository chatRepository;
-
-    public ChatService(ChatRepository chatRepository) {
-        this.chatRepository = chatRepository;
-    }
 
     public Chat registerChat(Creator creator, BotInstance botInstance, String telegramChatId, String title, String type) {
         Chat chat = new Chat();

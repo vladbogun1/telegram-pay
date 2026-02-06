@@ -18,6 +18,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -25,6 +26,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 @Service
+@RequiredArgsConstructor
 public class WalletPayService {
     private static final String WALLET_PAY_URL = "https://pay.wallet.tg/wpay/store-api/v1/order";
 
@@ -37,26 +39,6 @@ public class WalletPayService {
     private final CryptoService cryptoService;
     private final RestTemplate restTemplate;
     private final AuditLogService auditLogService;
-
-    public WalletPayService(WalletPayConfigRepository walletPayConfigRepository,
-                            ProductRepository productRepository,
-                            OrderRepository orderRepository,
-                            PaymentRepository paymentRepository,
-                            EntitlementService entitlementService,
-                            TelegramService telegramService,
-                            CryptoService cryptoService,
-                            RestTemplate restTemplate,
-                            AuditLogService auditLogService) {
-        this.walletPayConfigRepository = walletPayConfigRepository;
-        this.productRepository = productRepository;
-        this.orderRepository = orderRepository;
-        this.paymentRepository = paymentRepository;
-        this.entitlementService = entitlementService;
-        this.telegramService = telegramService;
-        this.cryptoService = cryptoService;
-        this.restTemplate = restTemplate;
-        this.auditLogService = auditLogService;
-    }
 
     public Map<String, Object> createWalletPayOrder(Creator creator, Long productId, String telegramUserId) {
         WalletPayConfig config = walletPayConfigRepository.findByCreatorId(creator.getId())

@@ -8,18 +8,15 @@ import com.example.telegrampay.repository.EntitlementRepository;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@RequiredArgsConstructor
 public class EntitlementService {
     private final EntitlementRepository entitlementRepository;
     private final TelegramService telegramService;
-
-    public EntitlementService(EntitlementRepository entitlementRepository, TelegramService telegramService) {
-        this.entitlementRepository = entitlementRepository;
-        this.telegramService = telegramService;
-    }
 
     @Transactional
     public Entitlement grantAccess(Creator creator, Product product, String telegramUserId, Instant accessUntil, String botToken) {

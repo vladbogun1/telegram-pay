@@ -7,28 +7,23 @@ import com.example.telegrampay.repository.BotInstanceRepository;
 import com.example.telegrampay.service.AuditLogService;
 import com.example.telegrampay.service.PaymentService;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 @RequestMapping("/webhooks/telegram")
+@RequiredArgsConstructor
 public class TelegramWebhookController {
     private final BotInstanceRepository botInstanceRepository;
     private final PaymentService paymentService;
     private final AuditLogService auditLogService;
-    public TelegramWebhookController(BotInstanceRepository botInstanceRepository,
-                                     PaymentService paymentService,
-                                     AuditLogService auditLogService) {
-        this.botInstanceRepository = botInstanceRepository;
-        this.paymentService = paymentService;
-        this.auditLogService = auditLogService;
-    }
 
     @PostMapping("/{botInstanceId}")
     @ResponseStatus(HttpStatus.OK)

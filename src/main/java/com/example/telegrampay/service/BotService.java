@@ -5,17 +5,14 @@ import com.example.telegrampay.domain.Creator;
 import com.example.telegrampay.repository.BotInstanceRepository;
 import java.util.List;
 import java.util.UUID;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 public class BotService {
     private final BotInstanceRepository botInstanceRepository;
     private final CryptoService cryptoService;
-
-    public BotService(BotInstanceRepository botInstanceRepository, CryptoService cryptoService) {
-        this.botInstanceRepository = botInstanceRepository;
-        this.cryptoService = cryptoService;
-    }
 
     public BotInstance registerBot(Creator creator, String name, String botToken) {
         BotInstance bot = new BotInstance();

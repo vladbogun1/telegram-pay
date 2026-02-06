@@ -12,9 +12,19 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.time.Instant;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Table(name = "payments")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Payment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -28,6 +38,7 @@ public class Payment {
     @Column(nullable = false)
     private PaymentProvider provider;
 
+    @Builder.Default
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private PaymentStatus status = PaymentStatus.NEW;
@@ -47,82 +58,7 @@ public class Payment {
     @Column
     private Boolean firstRecurring;
 
+    @Builder.Default
     @Column(nullable = false)
     private Instant createdAt = Instant.now();
-
-    public Long getId() {
-        return id;
-    }
-
-    public Order getOrder() {
-        return order;
-    }
-
-    public void setOrder(Order order) {
-        this.order = order;
-    }
-
-    public PaymentProvider getProvider() {
-        return provider;
-    }
-
-    public void setProvider(PaymentProvider provider) {
-        this.provider = provider;
-    }
-
-    public PaymentStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(PaymentStatus status) {
-        this.status = status;
-    }
-
-    public String getTelegramPaymentChargeId() {
-        return telegramPaymentChargeId;
-    }
-
-    public void setTelegramPaymentChargeId(String telegramPaymentChargeId) {
-        this.telegramPaymentChargeId = telegramPaymentChargeId;
-    }
-
-    public String getProviderPaymentChargeId() {
-        return providerPaymentChargeId;
-    }
-
-    public void setProviderPaymentChargeId(String providerPaymentChargeId) {
-        this.providerPaymentChargeId = providerPaymentChargeId;
-    }
-
-    public Instant getSubscriptionExpirationDate() {
-        return subscriptionExpirationDate;
-    }
-
-    public void setSubscriptionExpirationDate(Instant subscriptionExpirationDate) {
-        this.subscriptionExpirationDate = subscriptionExpirationDate;
-    }
-
-    public Boolean getRecurring() {
-        return recurring;
-    }
-
-    public void setRecurring(Boolean recurring) {
-        this.recurring = recurring;
-    }
-
-    public Boolean getFirstRecurring() {
-        return firstRecurring;
-    }
-
-    public void setFirstRecurring(Boolean firstRecurring) {
-        this.firstRecurring = firstRecurring;
-    }
-
-    public Instant getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(Instant createdAt) {
-        this.createdAt = createdAt;
-    }
 }

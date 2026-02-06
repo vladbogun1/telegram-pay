@@ -1,0 +1,11 @@
+body {
+  font-family: 'Roboto', sans-serif;
+}
+
+.card-title {
+  font-weight: 600;
+}
+
+.collection .collection-item {
+  font-size: 0.95rem;
+}

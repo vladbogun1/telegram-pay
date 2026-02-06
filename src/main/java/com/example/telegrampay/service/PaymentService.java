@@ -17,10 +17,12 @@ import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@RequiredArgsConstructor
 public class PaymentService {
     private final OrderRepository orderRepository;
     private final PaymentRepository paymentRepository;
@@ -28,20 +30,6 @@ public class PaymentService {
     private final EntitlementService entitlementService;
     private final TelegramService telegramService;
     private final AuditLogService auditLogService;
-
-    public PaymentService(OrderRepository orderRepository,
-                          PaymentRepository paymentRepository,
-                          ProductRepository productRepository,
-                          EntitlementService entitlementService,
-                          TelegramService telegramService,
-                          AuditLogService auditLogService) {
-        this.orderRepository = orderRepository;
-        this.paymentRepository = paymentRepository;
-        this.productRepository = productRepository;
-        this.entitlementService = entitlementService;
-        this.telegramService = telegramService;
-        this.auditLogService = auditLogService;
-    }
 
     @Transactional
     public Order createStarsInvoice(Creator creator, BotInstance botInstance, Long productId, String telegramUserId) {

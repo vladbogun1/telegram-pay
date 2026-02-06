@@ -24,6 +24,9 @@ public class CreatorAuthFilter extends OncePerRequestFilter {
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getRequestURI();
         return path.startsWith("/webhooks/")
+            || path.startsWith("/ui")
+            || path.equals("/")
+            || path.startsWith("/assets/")
             || (path.equals("/api/creators") && HttpMethod.POST.matches(request.getMethod()))
             || path.startsWith("/actuator");
     }

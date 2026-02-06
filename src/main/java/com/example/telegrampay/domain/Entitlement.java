@@ -12,9 +12,19 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.time.Instant;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Table(name = "entitlements")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Entitlement {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -37,6 +47,7 @@ public class Entitlement {
     @Column(nullable = false)
     private Instant accessUntil;
 
+    @Builder.Default
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private EntitlementStatus status = EntitlementStatus.ACTIVE;
@@ -44,85 +55,11 @@ public class Entitlement {
     @Column
     private String inviteLink;
 
+    @Builder.Default
     @Column(nullable = false)
     private Instant createdAt = Instant.now();
 
+    @Builder.Default
     @Column(nullable = false)
     private Instant updatedAt = Instant.now();
-
-    public Long getId() {
-        return id;
-    }
-
-    public Creator getCreator() {
-        return creator;
-    }
-
-    public void setCreator(Creator creator) {
-        this.creator = creator;
-    }
-
-    public Product getProduct() {
-        return product;
-    }
-
-    public void setProduct(Product product) {
-        this.product = product;
-    }
-
-    public String getTelegramUserId() {
-        return telegramUserId;
-    }
-
-    public void setTelegramUserId(String telegramUserId) {
-        this.telegramUserId = telegramUserId;
-    }
-
-    public String getChatId() {
-        return chatId;
-    }
-
-    public void setChatId(String chatId) {
-        this.chatId = chatId;
-    }
-
-    public Instant getAccessUntil() {
-        return accessUntil;
-    }
-
-    public void setAccessUntil(Instant accessUntil) {
-        this.accessUntil = accessUntil;
-    }
-
-    public EntitlementStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(EntitlementStatus status) {
-        this.status = status;
-    }
-
-    public String getInviteLink() {
-        return inviteLink;
-    }
-
-    public void setInviteLink(String inviteLink) {
-        this.inviteLink = inviteLink;
-    }
-
-    public Instant getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(Instant createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public Instant getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(Instant updatedAt) {
-        this.updatedAt = updatedAt;
-    }
 }

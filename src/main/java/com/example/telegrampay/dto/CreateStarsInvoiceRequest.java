@@ -2,7 +2,11 @@ package com.example.telegrampay.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
+@Data
+@NoArgsConstructor
 public class CreateStarsInvoiceRequest {
     @NotNull
     private Long productId;
@@ -10,28 +14,4 @@ public class CreateStarsInvoiceRequest {
     private Long botInstanceId;
     @NotBlank
     private String telegramUserId;
-
-    public Long getProductId() {
-        return productId;
-    }
-
-    public void setProductId(Long productId) {
-        this.productId = productId;
-    }
-
-    public Long getBotInstanceId() {
-        return botInstanceId;
-    }
-
-    public void setBotInstanceId(Long botInstanceId) {
-        this.botInstanceId = botInstanceId;
-    }
-
-    public String getTelegramUserId() {
-        return telegramUserId;
-    }
-
-    public void setTelegramUserId(String telegramUserId) {
-        this.telegramUserId = telegramUserId;
-    }
 }

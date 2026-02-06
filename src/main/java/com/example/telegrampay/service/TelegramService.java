@@ -4,6 +4,7 @@ import com.example.telegrampay.domain.BotInstance;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpEntity;
@@ -13,17 +14,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 @Service
+@RequiredArgsConstructor
 public class TelegramService {
     private static final Logger log = LoggerFactory.getLogger(TelegramService.class);
     private static final String API_URL = "https://api.telegram.org/bot";
 
     private final RestTemplate restTemplate;
     private final CryptoService cryptoService;
-
-    public TelegramService(RestTemplate restTemplate, CryptoService cryptoService) {
-        this.restTemplate = restTemplate;
-        this.cryptoService = cryptoService;
-    }
 
     public String resolveBotToken(BotInstance botInstance) {
         return cryptoService.decrypt(botInstance.getBotTokenEncrypted());

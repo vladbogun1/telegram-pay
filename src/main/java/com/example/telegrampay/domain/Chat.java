@@ -9,9 +9,19 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Table(name = "chats")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Chat {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -33,48 +43,4 @@ public class Chat {
 
     @Column(nullable = false)
     private String type;
-
-    public Long getId() {
-        return id;
-    }
-
-    public Creator getCreator() {
-        return creator;
-    }
-
-    public void setCreator(Creator creator) {
-        this.creator = creator;
-    }
-
-    public BotInstance getBotInstance() {
-        return botInstance;
-    }
-
-    public void setBotInstance(BotInstance botInstance) {
-        this.botInstance = botInstance;
-    }
-
-    public String getTelegramChatId() {
-        return telegramChatId;
-    }
-
-    public void setTelegramChatId(String telegramChatId) {
-        this.telegramChatId = telegramChatId;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
 }

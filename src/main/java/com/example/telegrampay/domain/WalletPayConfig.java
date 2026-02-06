@@ -9,9 +9,19 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Table(name = "wallet_pay_configs")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class WalletPayConfig {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -29,40 +39,4 @@ public class WalletPayConfig {
 
     @Column(nullable = false)
     private String failReturnUrl;
-
-    public Long getId() {
-        return id;
-    }
-
-    public Creator getCreator() {
-        return creator;
-    }
-
-    public void setCreator(Creator creator) {
-        this.creator = creator;
-    }
-
-    public String getStoreApiKeyEncrypted() {
-        return storeApiKeyEncrypted;
-    }
-
-    public void setStoreApiKeyEncrypted(String storeApiKeyEncrypted) {
-        this.storeApiKeyEncrypted = storeApiKeyEncrypted;
-    }
-
-    public String getReturnUrl() {
-        return returnUrl;
-    }
-
-    public void setReturnUrl(String returnUrl) {
-        this.returnUrl = returnUrl;
-    }
-
-    public String getFailReturnUrl() {
-        return failReturnUrl;
-    }
-
-    public void setFailReturnUrl(String failReturnUrl) {
-        this.failReturnUrl = failReturnUrl;
-    }
 }

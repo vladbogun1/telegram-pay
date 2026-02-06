@@ -5,6 +5,7 @@ import com.example.telegrampay.dto.CreateCreatorRequest;
 import com.example.telegrampay.dto.CreateCreatorResponse;
 import com.example.telegrampay.service.CreatorService;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -14,12 +15,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/creators")
+@RequiredArgsConstructor
 public class CreatorController {
     private final CreatorService creatorService;
-
-    public CreatorController(CreatorService creatorService) {
-        this.creatorService = creatorService;
-    }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)

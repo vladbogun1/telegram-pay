@@ -5,6 +5,7 @@ import com.example.telegrampay.dto.WalletPayWebhook;
 import com.example.telegrampay.repository.CreatorRepository;
 import com.example.telegrampay.service.AuditLogService;
 import com.example.telegrampay.service.WalletPayService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -15,18 +16,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/webhooks/walletpay")
+@RequiredArgsConstructor
 public class WalletPayWebhookController {
     private final WalletPayService walletPayService;
     private final CreatorRepository creatorRepository;
     private final AuditLogService auditLogService;
-
-    public WalletPayWebhookController(WalletPayService walletPayService,
-                                      CreatorRepository creatorRepository,
-                                      AuditLogService auditLogService) {
-        this.walletPayService = walletPayService;
-        this.creatorRepository = creatorRepository;
-        this.auditLogService = auditLogService;
-    }
 
     @PostMapping("/{creatorId}")
     @ResponseStatus(HttpStatus.OK)

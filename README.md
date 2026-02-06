@@ -42,6 +42,19 @@ docker compose up --build
 ## API Overview
 All creator endpoints require `X-Api-Key` header, except onboarding.
 
+## Web UI (Material Design)
+The project ships with a Material Design console at:
+
+```
+http://localhost:8080/
+```
+
+Steps:
+1. Create a creator and copy the API key.
+2. Paste the API key into the UI and click **Save API Key**.
+3. Register bots, connect chats, create products, and generate invoices from the UI.
+4. Use the bot list to select a bot and automatically filter connected chats.
+
 ### Create a creator
 ```bash
 curl -X POST http://localhost:8080/api/creators \
@@ -112,6 +125,36 @@ Updates are sent to:
 POST /webhooks/telegram/{botInstanceId}
 Header: X-Telegram-Bot-Api-Secret-Token: <webhookSecretToken>
 ```
+
+## Creating and using Telegram bots (RU)
+### 1) Создание бота
+1. Откройте **@BotFather** в Telegram.
+2. Выполните команду `/newbot`, задайте имя и username.
+3. Скопируйте выданный токен бота (например `123456:ABCDEF`).
+
+### 2) Подключение бота к telegram-pay
+1. В UI зарегистрируйте бота (Bot name + Bot token).
+2. Сохраните `webhookSecretToken`, который вернётся системой.
+3. Установите webhook:
+```
+POST https://api.telegram.org/bot<token>/setWebhook
+{
+  "url": "https://your-domain/webhooks/telegram/{botInstanceId}",
+  "secret_token": "<webhookSecretToken>"
+}
+```
+
+### 3) Подключение канала/чата
+1. Добавьте бота в канал или супергруппу как администратора (с правом приглашений и удаления).
+2. В UI создайте подключение чата: укажите Telegram chat ID, тип и Bot instance ID.
+
+### 4) Продажа доступа
+1. Создайте продукт (привяжите к чату, укажите цену в Stars, длительность/рекуррентность).
+2. Отправьте Stars-инвойс пользователю.
+3. После `successful_payment` система создаст одноразовую invite-ссылку и отправит её пользователю.
+
+### 5) Команды бота
+- `/paysupport` — покажет контакты поддержки и статус последнего заказа.
 
 ## Wallet Pay Webhooks
 ```
