@@ -20,7 +20,7 @@ app:
     sddeTextToolPath: ""
     wwiseUtilPath: ""
     wwiseConsolePath: ""
-    ffmpegPath: ""
+    ffmpegPath: ${FFMPEG_PATH:/usr/bin/ffmpeg}
     fileRedirectorPath: ""
     sound2wemPath: ""
     whisperServiceUrl: http://ai-asr:8002

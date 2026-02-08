@@ -39,6 +39,23 @@ services:
 
 2. В UI укажите путь **внутри контейнера**: `/games/SDDE`.
 
+### Как подключить внешние инструменты в Docker
+
+1. Установите инструменты на хост‑машине (Windows).
+2. Смонтируйте их папку в контейнер (пример):
+
+```yaml
+services:
+  backend:
+    volumes:
+      - ./data:/data
+      - "D:/SDDE-Tools:/tools"
+```
+
+3. В UI → **Tools Setup** укажите пути внутри контейнера, например:
+   - `C:\\` → `/tools/...` (в Docker)  
+   - `ffmpeg`: `/usr/bin/ffmpeg` (уже установлен в контейнере)
+
 ## Требования
 
 - **Docker Desktop** (Windows 11, WSL2)
@@ -50,6 +67,8 @@ services:
   - WwiseConsole.exe (официальный CLI). [Audiokinetic docs](https://www.audiokinetic.com/en/library/edge/?id=bankscommandline.html&source=SDK)
   - ffmpeg (для конвертации). https://ffmpeg.org/
   - sound2wem (опционально). [github.com/EternalLeo/sound2wem](https://github.com/EternalLeo/sound2wem)
+
+> ⚠️ Ограничение Docker: внутри контейнера мы **автоматически ставим только ffmpeg** (open‑source). Остальные инструменты (SDDEUnpacker, SDDE Text Tool, FileRedirector, wwiseutil, WwiseConsole) требуют ручной установки и настройки путей из‑за лицензий/прав и особенностей Windows‑утилит.
 
 ## Что умеет MVP
 
