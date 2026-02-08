@@ -8,8 +8,11 @@ services:
       - ./data:/data
       # Windows example: mount your Steam game folder so scan can see it
       # - "D:/STEAM/steamapps/common/SleepingDogsDefinitiveEdition:/games/SDDE:ro"
+      - ./tools/bin:/opt/tools
     environment:
       - APPDATA=/data
+      - WWISEUTIL_PATH=/opt/tools/wwiseutil
+      - SOUND2WEM_PATH=/opt/tools/sound2wem
   frontend:
     build:
       context: ./frontend
@@ -34,3 +37,8 @@ services:
       context: ./ai/asr
     ports:
       - "8002:8002"
+  tools-setup:
+    build:
+      context: ./docker/tools
+    volumes:
+      - ./tools/bin:/opt/tools

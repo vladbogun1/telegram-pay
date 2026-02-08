@@ -56,6 +56,23 @@ services:
    - `C:\\` → `/tools/...` (в Docker)  
    - `ffmpeg`: `/usr/bin/ffmpeg` (уже установлен в контейнере)
 
+### Автоустановка в Docker (что возможно)
+
+- **ffmpeg** устанавливается автоматически в контейнере backend.
+- **wwiseutil** можно собрать автоматически в `./tools/bin`:
+
+```bash
+./scripts/bootstrap-tools.sh
+```
+
+Для Windows PowerShell:
+
+```powershell
+./scripts/bootstrap-tools.ps1
+```
+
+> ⚠️ SDDEUnpacker, SDDE Text Tool, FileRedirector и WwiseConsole — Windows‑утилиты и/или требуют лицензионной установки. Их нельзя легально/корректно автоустанавливать в Linux‑контейнер; используйте монтирование и настройку путей в UI.
+
 ## Требования
 
 - **Docker Desktop** (Windows 11, WSL2)

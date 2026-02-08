@@ -18,11 +18,11 @@ app:
   tools:
     sddeUnpackerPath: ""
     sddeTextToolPath: ""
-    wwiseUtilPath: ""
+    wwiseUtilPath: ${WWISEUTIL_PATH:/opt/tools/wwiseutil}
     wwiseConsolePath: ""
     ffmpegPath: ${FFMPEG_PATH:/usr/bin/ffmpeg}
     fileRedirectorPath: ""
-    sound2wemPath: ""
+    sound2wemPath: ${SOUND2WEM_PATH:/opt/tools/sound2wem}
     whisperServiceUrl: http://ai-asr:8002
     translateServiceUrl: http://ai-translate:8000
     ttsServiceUrl: http://ai-tts:8001
