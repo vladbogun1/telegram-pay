@@ -152,13 +152,20 @@ export default function App() {
                 <Button variant="contained" sx={{ mt: 2 }} onClick={handleScan}>Scan</Button>
                 <Button variant="outlined" sx={{ mt: 2, ml: 2 }} onClick={handleCreateProject}>Create Project</Button>
                 {scanResult && (
-                  <List dense>
-                    {scanResult.files.map((file) => (
-                      <ListItem key={file.path}>
-                        <ListItemText primary={file.path} secondary={file.exists ? 'OK' : 'Missing'} />
-                      </ListItem>
-                    ))}
-                  </List>
+                  <>
+                    {scanResult.warning && (
+                      <Typography variant="body2" sx={{ mt: 2, color: '#f9c74f' }}>
+                        {scanResult.warning}
+                      </Typography>
+                    )}
+                    <List dense>
+                      {scanResult.files.map((file) => (
+                        <ListItem key={file.path}>
+                          <ListItemText primary={file.path} secondary={file.exists ? 'OK' : 'Missing'} />
+                        </ListItem>
+                      ))}
+                    </List>
+                  </>
                 )}
               </Paper>
             </Grid>

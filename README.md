@@ -23,6 +23,8 @@ SDDE NeuroDub Studio — локальная студия дубляжа для *
 - Frontend: http://localhost:5173
 - Backend: http://localhost:8080
 
+> ⚠️ Важно для Docker: backend видит только примонтированные пути. Если игра установлена на хосте, добавьте volume в `docker-compose.yml` или запускайте backend без контейнера, иначе scan вернёт предупреждение о недоступном пути.
+
 ## Требования
 
 - **Docker Desktop** (Windows 11, WSL2)

@@ -14,7 +14,8 @@ public class ScanService {
 
     public ScanResult scan(Path gamePath) throws IOException {
         if (!Files.exists(gamePath) || !Files.isDirectory(gamePath)) {
-            throw new IllegalArgumentException("Game path does not exist or is not a directory.");
+            return new ScanResult(gamePath.toString(), List.of(),
+                    "Game path not found from backend runtime. If running in Docker, mount the game folder or use a host path accessible inside the container.");
         }
         List<FileStatus> files = new ArrayList<>();
         addIfExists(gamePath.resolve("Global.big"), files);
@@ -22,7 +23,7 @@ public class ScanService {
         addIfExists(gamePath.resolve("data/Audio/SD2/English(US).pck"), files);
         addIfExists(gamePath.resolve("data/Audio/SD2/English.pck"), files);
         addIfExists(gamePath.resolve("data/Audio/SD2/English_US.pck"), files);
-        return new ScanResult(gamePath.toString(), files);
+        return new ScanResult(gamePath.toString(), files, null);
     }
 
     private void addIfExists(Path path, List<FileStatus> files) throws IOException {
@@ -33,7 +34,7 @@ public class ScanService {
         }
     }
 
-    public record ScanResult(String gamePath, List<FileStatus> files) {
+    public record ScanResult(String gamePath, List<FileStatus> files, String warning) {
     }
 
     public record FileStatus(String path, boolean exists, String sha256) {
