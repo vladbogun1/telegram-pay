@@ -1,0 +1,28 @@
+server:
+  port: 8080
+spring:
+  datasource:
+    url: jdbc:sqlite:${APPDATA:./data}/sdde-neurodub.db
+    driver-class-name: org.sqlite.JDBC
+  jpa:
+    hibernate:
+      ddl-auto: update
+    database-platform: org.hibernate.community.dialect.SQLiteDialect
+    open-in-view: false
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+app:
+  storage:
+    baseDir: ${APPDATA:./data}/sdde-neurodub
+  tools:
+    sddeUnpackerPath: ""
+    sddeTextToolPath: ""
+    wwiseUtilPath: ""
+    wwiseConsolePath: ""
+    ffmpegPath: ""
+    fileRedirectorPath: ""
+    sound2wemPath: ""
+    whisperServiceUrl: http://ai-asr:8002
+    translateServiceUrl: http://ai-translate:8000
+    ttsServiceUrl: http://ai-tts:8001
