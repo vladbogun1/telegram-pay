@@ -25,6 +25,20 @@ SDDE NeuroDub Studio — локальная студия дубляжа для *
 
 > ⚠️ Важно для Docker: backend видит только примонтированные пути. Если игра установлена на хосте, добавьте volume в `docker-compose.yml` или запускайте backend без контейнера, иначе scan вернёт предупреждение о недоступном пути.
 
+### Пример монтирования папки игры (Windows)
+
+1. Откройте `docker-compose.yml` и добавьте volume для backend:
+
+```yaml
+services:
+  backend:
+    volumes:
+      - ./data:/data
+      - "D:/STEAM/steamapps/common/SleepingDogsDefinitiveEdition:/games/SDDE:ro"
+```
+
+2. В UI укажите путь **внутри контейнера**: `/games/SDDE`.
+
 ## Требования
 
 - **Docker Desktop** (Windows 11, WSL2)

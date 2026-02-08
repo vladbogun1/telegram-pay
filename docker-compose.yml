@@ -6,6 +6,8 @@ services:
       - "8080:8080"
     volumes:
       - ./data:/data
+      # Windows example: mount your Steam game folder so scan can see it
+      # - "D:/STEAM/steamapps/common/SleepingDogsDefinitiveEdition:/games/SDDE:ro"
     environment:
       - APPDATA=/data
   frontend:
