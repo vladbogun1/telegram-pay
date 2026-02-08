@@ -51,6 +51,7 @@ export default function App() {
   const [applyResult, setApplyResult] = useState(null);
   const [rollbackResult, setRollbackResult] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   const statusChips = useMemo(() => (
     Object.entries(toolStatus).map(([tool, status]) => (
@@ -60,63 +61,135 @@ export default function App() {
 
   const handleScan = async () => {
     setLoading(true);
+    setErrorMessage('');
     try {
       const response = await api.post('/api/installations/scan', { path: gamePath });
       setScanResult(response.data);
+      setActiveStep(1);
+    } catch (error) {
+      setErrorMessage(error?.response?.data?.message || 'Scan failed. Check backend logs.');
     } finally {
       setLoading(false);
     }
   };
 
   const handleToolStatus = async () => {
-    const response = await api.get('/api/tools/status');
-    setToolStatus(response.data);
+    setErrorMessage('');
+    try {
+      const response = await api.get('/api/tools/status');
+      setToolStatus(response.data);
+      setActiveStep(2);
+    } catch (error) {
+      setErrorMessage(error?.response?.data?.message || 'Tool status check failed.');
+    }
   };
 
   const handleCreateProject = async () => {
-    const response = await api.post('/api/projects', { name: 'SDDE Steam Project', gamePath });
-    setProject(response.data);
+    setErrorMessage('');
+    try {
+      const response = await api.post('/api/projects', { name: 'SDDE Steam Project', gamePath });
+      setProject(response.data);
+      setActiveStep(2);
+    } catch (error) {
+      setErrorMessage(error?.response?.data?.message || 'Project creation failed.');
+    }
   };
 
   const handleExtractSubtitles = async () => {
     if (!project) return;
-    const response = await api.post(`/api/projects/${project.id}/extract-subtitles`);
-    setSubtitles(response.data);
+    setErrorMessage('');
+    try {
+      const response = await api.post(`/api/projects/${project.id}/extract-subtitles`);
+      setSubtitles(response.data);
+      setActiveStep(3);
+    } catch (error) {
+      setErrorMessage(error?.response?.data?.message || 'Subtitle extraction failed.');
+    }
   };
 
   const handleAutoMapping = async () => {
     if (!project) return;
-    const response = await api.post(`/api/projects/${project.id}/mapping/auto`);
-    setMappings(response.data);
+    setErrorMessage('');
+    try {
+      const response = await api.post(`/api/projects/${project.id}/mapping/auto`);
+      setMappings(response.data);
+      setActiveStep(4);
+    } catch (error) {
+      setErrorMessage(error?.response?.data?.message || 'Auto mapping failed.');
+    }
   };
 
   const handlePreview = async () => {
     if (!project) return;
-    const response = await api.post(
-      `/api/projects/${project.id}/tts/preview`,
-      { text: previewText, voice: previewVoice },
-      { responseType: 'blob' }
-    );
-    const url = URL.createObjectURL(response.data);
-    setPreviewAudioUrl(url);
+    setErrorMessage('');
+    try {
+      const response = await api.post(
+        `/api/projects/${project.id}/tts/preview`,
+        { text: previewText, voice: previewVoice },
+        { responseType: 'blob' }
+      );
+      const url = URL.createObjectURL(response.data);
+      setPreviewAudioUrl(url);
+      setActiveStep(5);
+    } catch (error) {
+      setErrorMessage(error?.response?.data?.message || 'Preview generation failed.');
+    }
   };
 
   const handleBuildPatch = async () => {
     if (!project) return;
-    const response = await api.post(`/api/projects/${project.id}/build-patch`);
-    setManifest(response.data);
+    setErrorMessage('');
+    try {
+      const response = await api.post(`/api/projects/${project.id}/build-patch`);
+      setManifest(response.data);
+      setActiveStep(6);
+    } catch (error) {
+      setErrorMessage(error?.response?.data?.message || 'Patch build failed.');
+    }
   };
 
   const handleApplyPatch = async () => {
     if (!project || !manifest) return;
-    const response = await api.post(`/api/projects/${project.id}/apply-patch`, manifest);
-    setApplyResult(response.data);
+    setErrorMessage('');
+    try {
+      const response = await api.post(`/api/projects/${project.id}/apply-patch`, manifest);
+      setApplyResult(response.data);
+      setActiveStep(7);
+    } catch (error) {
+      setErrorMessage(error?.response?.data?.message || 'Patch apply failed.');
+    }
   };
 
   const handleRollback = async () => {
     if (!project || !manifest) return;
-    const response = await api.post(`/api/projects/${project.id}/rollback`, manifest);
-    setRollbackResult(response.data);
+    setErrorMessage('');
+    try {
+      const response = await api.post(`/api/projects/${project.id}/rollback`, manifest);
+      setRollbackResult(response.data);
+    } catch (error) {
+      setErrorMessage(error?.response?.data?.message || 'Rollback failed.');
+    }
+  };
+
+  const canMoveNext = () => {
+    switch (activeStep) {
+      case 0:
+        return Boolean(scanResult);
+      case 1:
+        return Boolean(project);
+      case 2:
+        return subtitles.length > 0;
+      case 3:
+        return mappings.length > 0;
+      case 4:
+        return Boolean(previewAudioUrl);
+      case 5:
+        return Boolean(manifest);
+      case 6:
+        return Boolean(applyResult);
+      default:
+        return true;
+    }
   };
 
   return (
@@ -137,7 +210,13 @@ export default function App() {
             ))}
           </Stepper>
           {loading && <LinearProgress sx={{ mb: 2 }} />}
+          {errorMessage && (
+            <Typography variant="body2" sx={{ mb: 2, color: '#f94144' }}>
+              {errorMessage}
+            </Typography>
+          )}
           <Grid container spacing={2}>
+            {activeStep === 0 && (
             <Grid item xs={12} md={6}>
               <Paper sx={{ p: 2, bgcolor: '#1a2233', color: 'white' }}>
                 <Typography variant="subtitle1">1. Select Game Folder</Typography>
@@ -169,6 +248,8 @@ export default function App() {
                 )}
               </Paper>
             </Grid>
+            )}
+            {activeStep === 1 && (
             <Grid item xs={12} md={6}>
               <Paper sx={{ p: 2, bgcolor: '#1a2233', color: 'white' }}>
                 <Typography variant="subtitle1">2. Tools Setup</Typography>
@@ -178,20 +259,26 @@ export default function App() {
                 </Box>
               </Paper>
             </Grid>
+            )}
+            {activeStep === 2 && (
             <Grid item xs={12} md={6}>
               <Paper sx={{ p: 2, bgcolor: '#1a2233', color: 'white' }}>
                 <Typography variant="subtitle1">3. Subtitles Extract</Typography>
-                <Button variant="contained" sx={{ mt: 2 }} onClick={handleExtractSubtitles}>Extract Sample</Button>
+                <Button variant="contained" sx={{ mt: 2 }} onClick={handleExtractSubtitles} disabled={!project}>Extract Sample</Button>
                 <Typography variant="body2" sx={{ mt: 1 }}>Loaded: {subtitles.length}</Typography>
               </Paper>
             </Grid>
+            )}
+            {activeStep === 3 && (
             <Grid item xs={12} md={6}>
               <Paper sx={{ p: 2, bgcolor: '#1a2233', color: 'white' }}>
                 <Typography variant="subtitle1">4. Mapping</Typography>
-                <Button variant="contained" sx={{ mt: 2 }} onClick={handleAutoMapping}>Auto Map</Button>
+                <Button variant="contained" sx={{ mt: 2 }} onClick={handleAutoMapping} disabled={!project || subtitles.length === 0}>Auto Map</Button>
                 <Typography variant="body2" sx={{ mt: 1 }}>Mappings: {mappings.length}</Typography>
               </Paper>
             </Grid>
+            )}
+            {activeStep === 4 && (
             <Grid item xs={12} md={6}>
               <Paper sx={{ p: 2, bgcolor: '#1a2233', color: 'white' }}>
                 <Typography variant="subtitle1">5. Voice Preview</Typography>
@@ -211,7 +298,7 @@ export default function App() {
                   onChange={(event) => setPreviewVoice(event.target.value)}
                   sx={{ mt: 2, input: { color: 'white' }, label: { color: '#aab' } }}
                 />
-                <Button variant="contained" sx={{ mt: 2 }} onClick={handlePreview}>Generate Preview</Button>
+                <Button variant="contained" sx={{ mt: 2 }} onClick={handlePreview} disabled={!project}>Generate Preview</Button>
                 {previewAudioUrl && (
                   <Box sx={{ mt: 2 }}>
                     <audio controls src={previewAudioUrl} />
@@ -219,38 +306,51 @@ export default function App() {
                 )}
               </Paper>
             </Grid>
+            )}
+            {activeStep === 5 && (
             <Grid item xs={12} md={6}>
               <Paper sx={{ p: 2, bgcolor: '#1a2233', color: 'white' }}>
                 <Typography variant="subtitle1">6. Build Patch</Typography>
-                <Button variant="contained" sx={{ mt: 2 }} onClick={handleBuildPatch}>Build Patch</Button>
+                <Button variant="contained" sx={{ mt: 2 }} onClick={handleBuildPatch} disabled={!project || mappings.length === 0}>Build Patch</Button>
                 {manifest && (
                   <Typography variant="body2" sx={{ mt: 1 }}>Patch: {manifest.patchId}</Typography>
                 )}
               </Paper>
             </Grid>
+            )}
+            {activeStep === 6 && (
             <Grid item xs={12} md={6}>
               <Paper sx={{ p: 2, bgcolor: '#1a2233', color: 'white' }}>
                 <Typography variant="subtitle1">7. Apply Patch</Typography>
-                <Button variant="contained" sx={{ mt: 2 }} onClick={handleApplyPatch}>Apply</Button>
+                <Button variant="contained" sx={{ mt: 2 }} onClick={handleApplyPatch} disabled={!manifest}>Apply</Button>
                 {applyResult && (
                   <Typography variant="body2" sx={{ mt: 1 }}>{applyResult.message}</Typography>
                 )}
               </Paper>
             </Grid>
+            )}
+            {activeStep === 7 && (
             <Grid item xs={12} md={6}>
               <Paper sx={{ p: 2, bgcolor: '#1a2233', color: 'white' }}>
                 <Typography variant="subtitle1">8. Rollback</Typography>
-                <Button variant="outlined" sx={{ mt: 2 }} onClick={handleRollback}>Rollback</Button>
+                <Button variant="outlined" sx={{ mt: 2 }} onClick={handleRollback} disabled={!manifest}>Rollback</Button>
                 {rollbackResult && (
                   <Typography variant="body2" sx={{ mt: 1 }}>{rollbackResult.message}</Typography>
                 )}
               </Paper>
             </Grid>
+            )}
           </Grid>
           <Divider sx={{ my: 3 }} />
           <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
             <Button variant="text" onClick={() => setActiveStep(Math.max(activeStep - 1, 0))}>Back</Button>
-            <Button variant="text" onClick={() => setActiveStep(Math.min(activeStep + 1, steps.length - 1))}>Next</Button>
+            <Button
+              variant="text"
+              disabled={!canMoveNext()}
+              onClick={() => setActiveStep(Math.min(activeStep + 1, steps.length - 1))}
+            >
+              Next
+            </Button>
           </Box>
         </Paper>
       </Container>
