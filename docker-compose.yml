@@ -1,0 +1,47 @@
+services:
+  backend:
+    build:
+      context: ./backend
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./data:/data
+      # Windows example: mount your Steam game folder so scan can see it
+      # - "D:/STEAM/steamapps/common/SleepingDogsDefinitiveEdition:/games/SDDE:ro"
+      - ./tools/bin:/opt/tools
+    environment:
+      - APPDATA=/data
+      - WWISEUTIL_PATH=/opt/tools/wwiseutil
+      - SOUND2WEM_PATH=/opt/tools/sound2wem
+      - WHISPER_SERVICE_URL=http://ai-asr:8002
+      - TRANSLATE_SERVICE_URL=http://ai-translate:8000
+      - TTS_SERVICE_URL=http://ai-tts:8001
+  frontend:
+    build:
+      context: ./frontend
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_API_URL=http://localhost:8080
+    depends_on:
+      - backend
+  ai-translate:
+    build:
+      context: ./ai/translate
+    ports:
+      - "8000:8000"
+  ai-tts:
+    build:
+      context: ./ai/tts
+    ports:
+      - "8001:8001"
+  ai-asr:
+    build:
+      context: ./ai/asr
+    ports:
+      - "8002:8002"
+  tools-setup:
+    build:
+      context: ./docker/tools
+    volumes:
+      - ./tools/bin:/opt/tools

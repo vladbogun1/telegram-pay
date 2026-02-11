@@ -1,0 +1,34 @@
+server:
+  port: 8080
+logging:
+  file:
+    name: ${APPDATA:./data}/sdde-neurodub/logs/application.log
+  level:
+    root: INFO
+    com.sdde.neurodub: DEBUG
+spring:
+  datasource:
+    url: jdbc:sqlite:${APPDATA:./data}/sdde-neurodub.db
+    driver-class-name: org.sqlite.JDBC
+  jpa:
+    hibernate:
+      ddl-auto: update
+    database-platform: org.hibernate.community.dialect.SQLiteDialect
+    open-in-view: false
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+app:
+  storage:
+    baseDir: ${APPDATA:./data}/sdde-neurodub
+  tools:
+    sddeUnpackerPath: ""
+    sddeTextToolPath: ""
+    wwiseUtilPath: ${WWISEUTIL_PATH:/opt/tools/wwiseutil}
+    wwiseConsolePath: ""
+    ffmpegPath: ${FFMPEG_PATH:/usr/bin/ffmpeg}
+    fileRedirectorPath: ""
+    sound2wemPath: ${SOUND2WEM_PATH:/opt/tools/sound2wem}
+    whisperServiceUrl: ${WHISPER_SERVICE_URL:http://localhost:8002}
+    translateServiceUrl: ${TRANSLATE_SERVICE_URL:http://localhost:8000}
+    ttsServiceUrl: ${TTS_SERVICE_URL:http://localhost:8001}
