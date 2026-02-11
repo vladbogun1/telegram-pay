@@ -4,12 +4,14 @@ import math
 import os
 import subprocess
 import tempfile
+import time
 import wave
 from pathlib import Path
 
 import edge_tts
 from fastapi import FastAPI
 from fastapi.responses import Response
+from gtts import gTTS
 from pydantic import BaseModel
 from pydub import AudioSegment
 
@@ -24,7 +26,6 @@ class TtsRequest(BaseModel):
     voice: str = "neutral_female"
 
 
-# Neural (Edge TTS) voices: much smoother than espeak fallback
 EDGE_VOICE_MAP = {
     "neutral_female": "ru-RU-SvetlanaNeural",
     "neutral_male": "ru-RU-DmitryNeural",
@@ -32,7 +33,6 @@ EDGE_VOICE_MAP = {
     "male_deep": "ru-RU-DmitryNeural",
 }
 
-# Offline fallback voices (kept for resilience)
 ESPEAK_VOICE_MAP = {
     "neutral_female": "ru+f3",
     "neutral_male": "ru+m3",
@@ -40,10 +40,21 @@ ESPEAK_VOICE_MAP = {
     "male_deep": "ru+m4",
 }
 
+EDGE_DISABLED_UNTIL = 0.0
+EDGE_FAIL_COOLDOWN_SEC = int(os.getenv("EDGE_TTS_COOLDOWN_SEC", "600"))
+
 
 def _normalize_text(text: str) -> str:
     normalized = (text or "").strip()
     return normalized or "Пустой текст для предпросмотра"
+
+
+def _post_process_to_wav(src_path: Path, src_format: str, out_path: Path) -> bytes:
+    segment = AudioSegment.from_file(str(src_path), format=src_format)
+    segment = segment.normalize(headroom=1.0)
+    segment = segment.set_frame_rate(24000).set_channels(1)
+    segment.export(str(out_path), format="wav")
+    return out_path.read_bytes()
 
 
 def _fallback_wave(text: str, voice: str) -> bytes:
@@ -75,14 +86,18 @@ async def _generate_edge_wav(text: str, voice_profile: str) -> bytes:
 
         communicate = edge_tts.Communicate(text=text, voice=edge_voice, rate=rate, pitch=pitch)
         await communicate.save(str(mp3_path))
-
-        segment = AudioSegment.from_file(str(mp3_path), format="mp3")
-        segment = segment.normalize(headroom=1.0)
-        segment = segment.set_frame_rate(24000).set_channels(1)
-        segment.export(str(wav_path), format="wav")
-
-        audio = wav_path.read_bytes()
+        audio = _post_process_to_wav(mp3_path, "mp3", wav_path)
         log.info("Generated TTS preview via edge-tts: voice=%s chars=%s bytes=%s", edge_voice, len(text), len(audio))
+        return audio
+
+
+def _generate_gtts_wav(text: str) -> bytes:
+    with tempfile.TemporaryDirectory(prefix="tts-gtts-") as tmp_dir:
+        mp3_path = Path(tmp_dir) / "preview.mp3"
+        wav_path = Path(tmp_dir) / "preview.wav"
+        gTTS(text=text, lang="ru", slow=False).save(str(mp3_path))
+        audio = _post_process_to_wav(mp3_path, "mp3", wav_path)
+        log.info("Generated TTS preview via gTTS: chars=%s bytes=%s", len(text), len(audio))
         return audio
 
 
@@ -92,42 +107,44 @@ def _generate_espeak_wav(text: str, voice_profile: str) -> bytes:
 
     with tempfile.TemporaryDirectory(prefix="tts-espeak-") as tmp_dir:
         out_path = Path(tmp_dir) / "preview.wav"
-        cmd = [
-            "espeak-ng",
-            "-v",
-            voice,
-            "-s",
-            speed,
-            "-w",
-            str(out_path),
-            text,
-        ]
-        subprocess.run(cmd, check=True, capture_output=True, text=True)
-
-        segment = AudioSegment.from_file(str(out_path), format="wav")
-        segment = segment.normalize(headroom=1.0)
-        segment = segment.set_frame_rate(24000).set_channels(1)
         normalized_path = Path(tmp_dir) / "preview-normalized.wav"
-        segment.export(str(normalized_path), format="wav")
-
-        audio = normalized_path.read_bytes()
+        cmd = ["espeak-ng", "-v", voice, "-s", speed, "-w", str(out_path), text]
+        subprocess.run(cmd, check=True, capture_output=True, text=True)
+        audio = _post_process_to_wav(out_path, "wav", normalized_path)
         log.info("Generated TTS preview via espeak-ng fallback: voice=%s chars=%s bytes=%s", voice, len(text), len(audio))
         return audio
 
 
 @app.post("/tts/preview")
 async def tts_preview(request: TtsRequest):
+    global EDGE_DISABLED_UNTIL
+
     text = _normalize_text(request.text)
     voice_profile = request.voice or "neutral_female"
 
+    now = time.time()
+    if now >= EDGE_DISABLED_UNTIL:
+        try:
+            return Response(content=await _generate_edge_wav(text, voice_profile), media_type="audio/wav")
+        except Exception as edge_exc:
+            message = str(edge_exc)
+            if "403" in message or "Invalid response status" in message:
+                EDGE_DISABLED_UNTIL = now + EDGE_FAIL_COOLDOWN_SEC
+                log.warning("edge-tts is returning 403; disabling for %ss and switching to next fallback", EDGE_FAIL_COOLDOWN_SEC)
+            else:
+                log.warning("edge-tts failed: %s", message)
+    else:
+        remaining = int(EDGE_DISABLED_UNTIL - now)
+        log.info("edge-tts temporarily disabled due to previous failures (%ss left)", remaining)
+
     try:
-        return Response(content=await _generate_edge_wav(text, voice_profile), media_type="audio/wav")
-    except Exception as edge_exc:
-        log.exception("edge-tts generation failed, trying espeak-ng fallback: %s", edge_exc)
+        return Response(content=_generate_gtts_wav(text), media_type="audio/wav")
+    except Exception as gtts_exc:
+        log.warning("gTTS failed, switching to espeak-ng: %s", gtts_exc)
 
     try:
         return Response(content=_generate_espeak_wav(text, voice_profile), media_type="audio/wav")
     except Exception as espeak_exc:
-        log.exception("espeak-ng generation failed, falling back to synthetic waveform: %s", espeak_exc)
+        log.warning("espeak-ng failed, switching to synthetic fallback: %s", espeak_exc)
 
     return Response(content=_fallback_wave(text, voice_profile), media_type="audio/wav")
