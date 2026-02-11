@@ -29,6 +29,6 @@ app:
     ffmpegPath: ${FFMPEG_PATH:/usr/bin/ffmpeg}
     fileRedirectorPath: ""
     sound2wemPath: ${SOUND2WEM_PATH:/opt/tools/sound2wem}
-    whisperServiceUrl: http://ai-asr:8002
-    translateServiceUrl: http://ai-translate:8000
-    ttsServiceUrl: http://ai-tts:8001
+    whisperServiceUrl: ${WHISPER_SERVICE_URL:http://localhost:8002}
+    translateServiceUrl: ${TRANSLATE_SERVICE_URL:http://localhost:8000}
+    ttsServiceUrl: ${TTS_SERVICE_URL:http://localhost:8001}

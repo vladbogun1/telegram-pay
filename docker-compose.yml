@@ -13,6 +13,9 @@ services:
       - APPDATA=/data
       - WWISEUTIL_PATH=/opt/tools/wwiseutil
       - SOUND2WEM_PATH=/opt/tools/sound2wem
+      - WHISPER_SERVICE_URL=http://ai-asr:8002
+      - TRANSLATE_SERVICE_URL=http://ai-translate:8000
+      - TTS_SERVICE_URL=http://ai-tts:8001
   frontend:
     build:
       context: ./frontend

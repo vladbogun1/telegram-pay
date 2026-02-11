@@ -73,6 +73,77 @@ services:
 
 > ⚠️ SDDEUnpacker, SDDE Text Tool, FileRedirector и WwiseConsole — Windows‑утилиты и/или требуют лицензионной установки. Их нельзя легально/корректно автоустанавливать в Linux‑контейнер; используйте монтирование и настройку путей в UI.
 
+## Запуск через IntelliJ IDEA (Windows-first)
+
+> Цель: комфортный дебаг из IDE, без обязательного запуска backend/frontend в Docker.
+
+### 1) Что запускать локально из IDE
+- **Backend (Spring Boot)**: запускайте `NeuroDubApplication` из IntelliJ.
+- **Frontend (Vite/React)**: запускайте `npm run dev` в папке `frontend` (терминал IntelliJ).
+
+### 2) Что оставить в Docker
+- **AI сервисы** (tts/translate/asr) можно оставить в Docker:
+```bash
+docker compose up -d ai-tts ai-translate ai-asr
+```
+- Отдельную серверную СУБД ставить не нужно: backend использует **SQLite файл** (`./data/sdde-neurodub.db`).
+
+### 3) Конфиг для backend в IDE
+В `application.yml` уже выставлены IDE-friendly дефолты:
+- `TTS_SERVICE_URL` -> `http://localhost:8001`
+- `TRANSLATE_SERVICE_URL` -> `http://localhost:8000`
+- `WHISPER_SERVICE_URL` -> `http://localhost:8002`
+
+То есть при запуске backend из IntelliJ сервисы на localhost подхватятся автоматически.
+
+### 4) Рекомендуемый порядок старта (Windows)
+1. `docker compose up -d ai-tts ai-translate ai-asr`
+2. IntelliJ: Run `NeuroDubApplication`
+3. IntelliJ Terminal: `cd frontend && npm install && npm run dev`
+4. Открыть UI: `http://localhost:5173`
+
+## Полная установка тулов на Windows (скачать + установить)
+
+Ниже минимальный набор для реального SDDE-пайплайна. Бинарники в git не кладём — только локальная установка и пути в Tools Setup.
+
+1. **FFmpeg** (обязателен)  
+   - Сайт: https://ffmpeg.org/download.html  
+   - Windows builds: https://www.gyan.dev/ffmpeg/builds/  
+   - Установка: распаковать, добавить `...\ffmpeg\bin` в PATH.
+
+2. **Wwise Authoring + WwiseConsole.exe** (обязателен для WAV->WEM)  
+   - Audiokinetic Launcher: https://www.audiokinetic.com/download/  
+   - Документация CLI: https://www.audiokinetic.com/en/library/edge/?id=bankscommandline.html&source=SDK  
+   - После установки путь обычно: `%WWISEROOT%\Authoring\x64\Release\bin\WwiseConsole.exe`.
+
+3. **wwiseutil** (обязателен для replace/unpack `.pck/.wem`)  
+   - Репозиторий: https://github.com/hpxro7/wwiseutil  
+   - Для Docker-варианта можно собрать `./scripts/bootstrap-tools.ps1`, либо скачать/собрать вручную и указать путь в UI.
+
+4. **SDDEUnpacker** (для распаковки `.big/.bix`)  
+   - См. гайд SDDE: https://steamcommunity.com/sharedfiles/filedetails/?id=3438844153  
+   - Установить локально, путь к exe указать в Tools Setup.
+
+5. **SDDE Text Tool by Delutto** (экспорт/импорт `.bin`)  
+   - См. гайд SDDE: https://steamcommunity.com/sharedfiles/filedetails/?id=3438844153  
+   - Установить локально, путь к exe указать в Tools Setup.
+
+6. **FileRedirector** (рекомендовано для safe patch без repack)  
+   - GitHub: https://github.com/SDmodding/FileRedirector  
+   - После установки появится `RedirectorData`, в него кладутся изменённые файлы по относительным путям.
+
+7. **sound2wem** (опционально)  
+   - GitHub: https://github.com/EternalLeo/sound2wem  
+   - Можно использовать как оболочку для конвертации в WEM.
+
+### Пути в Tools Setup (пример Windows)
+- `ffmpegPath`: `C:\Tools\ffmpeg\bin\ffmpeg.exe`
+- `wwiseConsolePath`: `C:\Program Files\Audiokinetic\Wwise ...\WwiseConsole.exe`
+- `wwiseUtilPath`: `C:\Tools\wwiseutil\wwiseutil.exe`
+- `sddeUnpackerPath`: `C:\Tools\SDDEUnpacker\...exe`
+- `sddeTextToolPath`: `C:\Tools\SDDETextTool\...exe`
+- `fileRedirectorPath`: путь до корня мода/Redirector
+
 ## Требования
 
 - **Docker Desktop** (Windows 11, WSL2)

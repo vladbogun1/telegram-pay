@@ -38,7 +38,6 @@ const steps = [
 ];
 
 export default function App() {
-  const [activeStep, setActiveStep] = useState(0);
   const [gamePath, setGamePath] = useState('');
   const [scanResult, setScanResult] = useState(null);
   const [toolStatus, setToolStatus] = useState({});
@@ -62,6 +61,17 @@ export default function App() {
     ))
   ), [toolStatus]);
 
+  const currentStep = useMemo(() => {
+    if (!scanResult) return 0;
+    if (!project) return 1;
+    if (subtitles.length === 0) return 2;
+    if (mappings.length === 0) return 3;
+    if (!previewAudioUrl) return 4;
+    if (!manifest) return 5;
+    if (!applyResult) return 6;
+    return 7;
+  }, [scanResult, project, subtitles.length, mappings.length, previewAudioUrl, manifest, applyResult]);
+
   const pushLog = (message) => {
     const timestamp = new Date().toISOString();
     setAppLogs((prev) => [`${timestamp} ${message}`, ...prev].slice(0, 200));
@@ -75,7 +85,6 @@ export default function App() {
       const response = await api.post('/api/installations/scan', { path: gamePath });
       setScanResult(response.data);
       pushLog(`SCAN success files=${response?.data?.files?.length || 0}`);
-      setActiveStep(1);
     } catch (error) {
       pushLog(`SCAN failed: ${error?.response?.data?.message || error.message}`);
       setErrorMessage(error?.response?.data?.message || 'Scan failed. Check backend logs.');
@@ -104,7 +113,6 @@ export default function App() {
       const response = await api.post('/api/projects', { name: 'SDDE Steam Project', gamePath });
       setProject(response.data);
       pushLog(`PROJECT create success id=${response?.data?.id}`);
-      setActiveStep(2);
     } catch (error) {
       pushLog(`PROJECT create failed: ${error?.response?.data?.message || error.message}`);
       setErrorMessage(error?.response?.data?.message || 'Project creation failed.');
@@ -119,7 +127,6 @@ export default function App() {
       const response = await api.post(`/api/projects/${project.id}/extract-subtitles`);
       setSubtitles(response.data);
       pushLog(`SUBTITLES extract success count=${response?.data?.length || 0}`);
-      setActiveStep(3);
     } catch (error) {
       pushLog(`SUBTITLES extract failed: ${error?.response?.data?.message || error.message}`);
       setErrorMessage(error?.response?.data?.message || 'Subtitle extraction failed.');
@@ -134,7 +141,6 @@ export default function App() {
       const response = await api.post(`/api/projects/${project.id}/mapping/auto`);
       setMappings(response.data);
       pushLog(`MAPPING auto success count=${response?.data?.length || 0}`);
-      setActiveStep(4);
     } catch (error) {
       pushLog(`MAPPING auto failed: ${error?.response?.data?.message || error.message}`);
       setErrorMessage(error?.response?.data?.message || 'Auto mapping failed.');
@@ -154,7 +160,6 @@ export default function App() {
       const url = URL.createObjectURL(response.data);
       setPreviewAudioUrl(url);
       pushLog('TTS preview success');
-      setActiveStep(5);
     } catch (error) {
       pushLog(`TTS preview failed: ${error?.response?.data?.message || error.message}`);
       setErrorMessage(error?.response?.data?.message || 'Preview generation failed.');
@@ -169,7 +174,6 @@ export default function App() {
       const response = await api.post(`/api/projects/${project.id}/build-patch`);
       setManifest(response.data);
       pushLog(`PATCH build success id=${response?.data?.patchId}`);
-      setActiveStep(6);
     } catch (error) {
       pushLog(`PATCH build failed: ${error?.response?.data?.message || error.message}`);
       setErrorMessage(error?.response?.data?.message || 'Patch build failed.');
@@ -184,7 +188,6 @@ export default function App() {
       const response = await api.post(`/api/projects/${project.id}/apply-patch`, manifest);
       setApplyResult(response.data);
       pushLog(`PATCH apply success: ${response?.data?.message || 'ok'}`);
-      setActiveStep(7);
     } catch (error) {
       pushLog(`PATCH apply failed: ${error?.response?.data?.message || error.message}`);
       setErrorMessage(error?.response?.data?.message || 'Patch apply failed.');
@@ -217,26 +220,13 @@ export default function App() {
     }
   };
 
-  const canMoveNext = () => {
-    switch (activeStep) {
-      case 0:
-        return Boolean(scanResult);
-      case 1:
-        return Boolean(project);
-      case 2:
-        return subtitles.length > 0;
-      case 3:
-        return mappings.length > 0;
-      case 4:
-        return Boolean(previewAudioUrl);
-      case 5:
-        return Boolean(manifest);
-      case 6:
-        return Boolean(applyResult);
-      default:
-        return true;
-    }
-  };
+  const cardStyle = (enabled) => ({
+    p: 2,
+    bgcolor: '#1a2233',
+    color: 'white',
+    opacity: enabled ? 1 : 0.75,
+    border: enabled ? '1px solid rgba(25,118,210,0.45)' : '1px solid rgba(255,255,255,0.08)'
+  });
 
   return (
     <Box sx={{ bgcolor: '#0b0f1a', minHeight: '100vh', color: 'white' }}>
@@ -248,7 +238,7 @@ export default function App() {
       <Container sx={{ py: 4 }}>
         <Paper sx={{ p: 3, mb: 3, bgcolor: '#121826', color: 'white' }}>
           <Typography variant="h5" sx={{ mb: 2 }}>Pipeline Wizard</Typography>
-          <Stepper activeStep={activeStep} alternativeLabel sx={{ mb: 2 }}>
+          <Stepper activeStep={currentStep} alternativeLabel sx={{ mb: 2 }}>
             {steps.map((label) => (
               <Step key={label}>
                 <StepLabel sx={{ color: 'white' }}>{label}</StepLabel>
@@ -261,10 +251,10 @@ export default function App() {
               {errorMessage}
             </Typography>
           )}
+
           <Grid container spacing={2}>
-            {activeStep === 0 && (
             <Grid item xs={12} md={6}>
-              <Paper sx={{ p: 2, bgcolor: '#1a2233', color: 'white' }}>
+              <Paper sx={cardStyle(true)}>
                 <Typography variant="subtitle1">1. Select Game Folder</Typography>
                 <TextField
                   fullWidth
@@ -278,9 +268,7 @@ export default function App() {
                 {scanResult && (
                   <>
                     {scanResult.warning && (
-                      <Typography variant="body2" sx={{ mt: 2, color: '#f9c74f' }}>
-                        {scanResult.warning}
-                      </Typography>
+                      <Typography variant="body2" sx={{ mt: 2, color: '#f9c74f' }}>{scanResult.warning}</Typography>
                     )}
                     <List dense>
                       {scanResult.files.map((file) => (
@@ -293,41 +281,35 @@ export default function App() {
                 )}
               </Paper>
             </Grid>
-            )}
-            {activeStep === 1 && (
+
             <Grid item xs={12} md={6}>
-              <Paper sx={{ p: 2, bgcolor: '#1a2233', color: 'white' }}>
+              <Paper sx={cardStyle(Boolean(scanResult))}>
                 <Typography variant="subtitle1">2. Tools Setup</Typography>
                 <Button variant="outlined" sx={{ mt: 2 }} onClick={handleToolStatus}>Check Tools</Button>
                 <Button variant="contained" sx={{ mt: 2, ml: 2 }} onClick={handleCreateProject} disabled={!scanResult}>Create Project</Button>
                 {!scanResult && <Alert severity="info" sx={{ mt: 2 }}>Run Scan first, then create project.</Alert>}
-                <Box sx={{ mt: 2, display: 'flex', flexWrap: 'wrap' }}>
-                  {statusChips}
-                </Box>
+                <Box sx={{ mt: 2, display: 'flex', flexWrap: 'wrap' }}>{statusChips}</Box>
               </Paper>
             </Grid>
-            )}
-            {activeStep === 2 && (
+
             <Grid item xs={12} md={6}>
-              <Paper sx={{ p: 2, bgcolor: '#1a2233', color: 'white' }}>
+              <Paper sx={cardStyle(Boolean(project))}>
                 <Typography variant="subtitle1">3. Subtitles Extract</Typography>
                 <Button variant="contained" sx={{ mt: 2 }} onClick={handleExtractSubtitles} disabled={!project}>Extract Sample</Button>
                 <Typography variant="body2" sx={{ mt: 1 }}>Loaded: {subtitles.length}</Typography>
               </Paper>
             </Grid>
-            )}
-            {activeStep === 3 && (
+
             <Grid item xs={12} md={6}>
-              <Paper sx={{ p: 2, bgcolor: '#1a2233', color: 'white' }}>
+              <Paper sx={cardStyle(Boolean(project && subtitles.length > 0))}>
                 <Typography variant="subtitle1">4. Mapping</Typography>
                 <Button variant="contained" sx={{ mt: 2 }} onClick={handleAutoMapping} disabled={!project || subtitles.length === 0}>Auto Map</Button>
                 <Typography variant="body2" sx={{ mt: 1 }}>Mappings: {mappings.length}</Typography>
               </Paper>
             </Grid>
-            )}
-            {activeStep === 4 && (
+
             <Grid item xs={12} md={6}>
-              <Paper sx={{ p: 2, bgcolor: '#1a2233', color: 'white' }}>
+              <Paper sx={cardStyle(Boolean(project))}>
                 <Typography variant="subtitle1">5. Voice Preview</Typography>
                 <TextField
                   fullWidth
@@ -346,48 +328,35 @@ export default function App() {
                   sx={{ mt: 2, input: { color: 'white' }, label: { color: '#aab' } }}
                 />
                 <Button variant="contained" sx={{ mt: 2 }} onClick={handlePreview} disabled={!project}>Generate Preview</Button>
-                {previewAudioUrl && (
-                  <Box sx={{ mt: 2 }}>
-                    <audio controls src={previewAudioUrl} />
-                  </Box>
-                )}
+                {previewAudioUrl && <Box sx={{ mt: 2 }}><audio controls src={previewAudioUrl} /></Box>}
               </Paper>
             </Grid>
-            )}
-            {activeStep === 5 && (
+
             <Grid item xs={12} md={6}>
-              <Paper sx={{ p: 2, bgcolor: '#1a2233', color: 'white' }}>
+              <Paper sx={cardStyle(Boolean(project && mappings.length > 0))}>
                 <Typography variant="subtitle1">6. Build Patch</Typography>
                 <Button variant="contained" sx={{ mt: 2 }} onClick={handleBuildPatch} disabled={!project || mappings.length === 0}>Build Patch</Button>
-                {manifest && (
-                  <Typography variant="body2" sx={{ mt: 1 }}>Patch: {manifest.patchId}</Typography>
-                )}
+                {manifest && <Typography variant="body2" sx={{ mt: 1 }}>Patch: {manifest.patchId}</Typography>}
               </Paper>
             </Grid>
-            )}
-            {activeStep === 6 && (
+
             <Grid item xs={12} md={6}>
-              <Paper sx={{ p: 2, bgcolor: '#1a2233', color: 'white' }}>
+              <Paper sx={cardStyle(Boolean(manifest))}>
                 <Typography variant="subtitle1">7. Apply Patch</Typography>
                 <Button variant="contained" sx={{ mt: 2 }} onClick={handleApplyPatch} disabled={!manifest}>Apply</Button>
-                {applyResult && (
-                  <Typography variant="body2" sx={{ mt: 1 }}>{applyResult.message}</Typography>
-                )}
+                {applyResult && <Typography variant="body2" sx={{ mt: 1 }}>{applyResult.message}</Typography>}
               </Paper>
             </Grid>
-            )}
-            {activeStep === 7 && (
+
             <Grid item xs={12} md={6}>
-              <Paper sx={{ p: 2, bgcolor: '#1a2233', color: 'white' }}>
+              <Paper sx={cardStyle(Boolean(manifest))}>
                 <Typography variant="subtitle1">8. Rollback</Typography>
                 <Button variant="outlined" sx={{ mt: 2 }} onClick={handleRollback} disabled={!manifest}>Rollback</Button>
-                {rollbackResult && (
-                  <Typography variant="body2" sx={{ mt: 1 }}>{rollbackResult.message}</Typography>
-                )}
+                {rollbackResult && <Typography variant="body2" sx={{ mt: 1 }}>{rollbackResult.message}</Typography>}
               </Paper>
             </Grid>
-            )}
           </Grid>
+
           <Divider sx={{ my: 3 }} />
           <Grid container spacing={2} sx={{ mb: 2 }}>
             <Grid item xs={12} md={6}>
@@ -414,16 +383,6 @@ export default function App() {
               </Paper>
             </Grid>
           </Grid>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-            <Button variant="text" onClick={() => setActiveStep(Math.max(activeStep - 1, 0))}>Back</Button>
-            <Button
-              variant="text"
-              disabled={!canMoveNext()}
-              onClick={() => setActiveStep(Math.min(activeStep + 1, steps.length - 1))}
-            >
-              Next
-            </Button>
-          </Box>
         </Paper>
       </Container>
     </Box>
