@@ -131,6 +131,16 @@ services:
 - **Access denied** — запускайте Docker Desktop с правами администратора или разместите игру вне `Program Files`.
 - **Steam update detected** — если checksum не совпадает, откат выполнит только redirector‑часть и предупредит о рисках.
 
+## Логи (для диагностики)
+
+- В UI добавлены два блока:
+  - **Frontend Activity Log** — показывает все действия мастера и ответы/ошибки запросов.
+  - **Backend Log Tail** — кнопка **Load Logs** подтягивает хвост логов backend.
+- Backend пишет лог в файл:
+  - `./data/sdde-neurodub/logs/application.log` (при Docker запуске)
+- Также доступен API для логов:
+  - `GET /api/system/logs?lines=200`
+
 ## Документация
 
 - [ARCHITECTURE.md](./ARCHITECTURE.md)

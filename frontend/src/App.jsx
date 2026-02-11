@@ -17,7 +17,8 @@ import {
   LinearProgress,
   List,
   ListItem,
-  ListItemText
+  ListItemText,
+  Alert
 } from '@mui/material';
 import axios from 'axios';
 
@@ -52,6 +53,8 @@ export default function App() {
   const [rollbackResult, setRollbackResult] = useState(null);
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [appLogs, setAppLogs] = useState([]);
+  const [backendLogs, setBackendLogs] = useState([]);
 
   const statusChips = useMemo(() => (
     Object.entries(toolStatus).map(([tool, status]) => (
@@ -59,14 +62,22 @@ export default function App() {
     ))
   ), [toolStatus]);
 
+  const pushLog = (message) => {
+    const timestamp = new Date().toISOString();
+    setAppLogs((prev) => [`${timestamp} ${message}`, ...prev].slice(0, 200));
+  };
+
   const handleScan = async () => {
     setLoading(true);
     setErrorMessage('');
+    pushLog(`SCAN start path=${gamePath}`);
     try {
       const response = await api.post('/api/installations/scan', { path: gamePath });
       setScanResult(response.data);
+      pushLog(`SCAN success files=${response?.data?.files?.length || 0}`);
       setActiveStep(1);
     } catch (error) {
+      pushLog(`SCAN failed: ${error?.response?.data?.message || error.message}`);
       setErrorMessage(error?.response?.data?.message || 'Scan failed. Check backend logs.');
     } finally {
       setLoading(false);
@@ -75,22 +86,27 @@ export default function App() {
 
   const handleToolStatus = async () => {
     setErrorMessage('');
+    pushLog('TOOLS status check start');
     try {
       const response = await api.get('/api/tools/status');
       setToolStatus(response.data);
-      setActiveStep(2);
+      pushLog(`TOOLS status check success: ${JSON.stringify(response.data)}`);
     } catch (error) {
+      pushLog(`TOOLS status check failed: ${error?.response?.data?.message || error.message}`);
       setErrorMessage(error?.response?.data?.message || 'Tool status check failed.');
     }
   };
 
   const handleCreateProject = async () => {
     setErrorMessage('');
+    pushLog('PROJECT create start');
     try {
       const response = await api.post('/api/projects', { name: 'SDDE Steam Project', gamePath });
       setProject(response.data);
+      pushLog(`PROJECT create success id=${response?.data?.id}`);
       setActiveStep(2);
     } catch (error) {
+      pushLog(`PROJECT create failed: ${error?.response?.data?.message || error.message}`);
       setErrorMessage(error?.response?.data?.message || 'Project creation failed.');
     }
   };
@@ -98,11 +114,14 @@ export default function App() {
   const handleExtractSubtitles = async () => {
     if (!project) return;
     setErrorMessage('');
+    pushLog(`SUBTITLES extract start project=${project.id}`);
     try {
       const response = await api.post(`/api/projects/${project.id}/extract-subtitles`);
       setSubtitles(response.data);
+      pushLog(`SUBTITLES extract success count=${response?.data?.length || 0}`);
       setActiveStep(3);
     } catch (error) {
+      pushLog(`SUBTITLES extract failed: ${error?.response?.data?.message || error.message}`);
       setErrorMessage(error?.response?.data?.message || 'Subtitle extraction failed.');
     }
   };
@@ -110,11 +129,14 @@ export default function App() {
   const handleAutoMapping = async () => {
     if (!project) return;
     setErrorMessage('');
+    pushLog(`MAPPING auto start project=${project.id}`);
     try {
       const response = await api.post(`/api/projects/${project.id}/mapping/auto`);
       setMappings(response.data);
+      pushLog(`MAPPING auto success count=${response?.data?.length || 0}`);
       setActiveStep(4);
     } catch (error) {
+      pushLog(`MAPPING auto failed: ${error?.response?.data?.message || error.message}`);
       setErrorMessage(error?.response?.data?.message || 'Auto mapping failed.');
     }
   };
@@ -122,6 +144,7 @@ export default function App() {
   const handlePreview = async () => {
     if (!project) return;
     setErrorMessage('');
+    pushLog(`TTS preview start voice=${previewVoice}`);
     try {
       const response = await api.post(
         `/api/projects/${project.id}/tts/preview`,
@@ -130,8 +153,10 @@ export default function App() {
       );
       const url = URL.createObjectURL(response.data);
       setPreviewAudioUrl(url);
+      pushLog('TTS preview success');
       setActiveStep(5);
     } catch (error) {
+      pushLog(`TTS preview failed: ${error?.response?.data?.message || error.message}`);
       setErrorMessage(error?.response?.data?.message || 'Preview generation failed.');
     }
   };
@@ -139,11 +164,14 @@ export default function App() {
   const handleBuildPatch = async () => {
     if (!project) return;
     setErrorMessage('');
+    pushLog('PATCH build start');
     try {
       const response = await api.post(`/api/projects/${project.id}/build-patch`);
       setManifest(response.data);
+      pushLog(`PATCH build success id=${response?.data?.patchId}`);
       setActiveStep(6);
     } catch (error) {
+      pushLog(`PATCH build failed: ${error?.response?.data?.message || error.message}`);
       setErrorMessage(error?.response?.data?.message || 'Patch build failed.');
     }
   };
@@ -151,11 +179,14 @@ export default function App() {
   const handleApplyPatch = async () => {
     if (!project || !manifest) return;
     setErrorMessage('');
+    pushLog('PATCH apply start');
     try {
       const response = await api.post(`/api/projects/${project.id}/apply-patch`, manifest);
       setApplyResult(response.data);
+      pushLog(`PATCH apply success: ${response?.data?.message || 'ok'}`);
       setActiveStep(7);
     } catch (error) {
+      pushLog(`PATCH apply failed: ${error?.response?.data?.message || error.message}`);
       setErrorMessage(error?.response?.data?.message || 'Patch apply failed.');
     }
   };
@@ -163,11 +194,26 @@ export default function App() {
   const handleRollback = async () => {
     if (!project || !manifest) return;
     setErrorMessage('');
+    pushLog('PATCH rollback start');
     try {
       const response = await api.post(`/api/projects/${project.id}/rollback`, manifest);
       setRollbackResult(response.data);
+      pushLog(`PATCH rollback success: ${response?.data?.message || 'ok'}`);
     } catch (error) {
+      pushLog(`PATCH rollback failed: ${error?.response?.data?.message || error.message}`);
       setErrorMessage(error?.response?.data?.message || 'Rollback failed.');
+    }
+  };
+
+  const handleLoadBackendLogs = async () => {
+    pushLog('SYSTEM logs fetch start');
+    try {
+      const response = await api.get('/api/system/logs?lines=200');
+      setBackendLogs(response.data.lines || []);
+      pushLog(`SYSTEM logs fetch success lines=${response?.data?.lines?.length || 0}`);
+    } catch (error) {
+      pushLog(`SYSTEM logs fetch failed: ${error?.response?.data?.message || error.message}`);
+      setErrorMessage(error?.response?.data?.message || 'Failed to load backend logs.');
     }
   };
 
@@ -229,7 +275,6 @@ export default function App() {
                   sx={{ mt: 2, input: { color: 'white' }, label: { color: '#aab' } }}
                 />
                 <Button variant="contained" sx={{ mt: 2 }} onClick={handleScan}>Scan</Button>
-                <Button variant="outlined" sx={{ mt: 2, ml: 2 }} onClick={handleCreateProject}>Create Project</Button>
                 {scanResult && (
                   <>
                     {scanResult.warning && (
@@ -254,6 +299,8 @@ export default function App() {
               <Paper sx={{ p: 2, bgcolor: '#1a2233', color: 'white' }}>
                 <Typography variant="subtitle1">2. Tools Setup</Typography>
                 <Button variant="outlined" sx={{ mt: 2 }} onClick={handleToolStatus}>Check Tools</Button>
+                <Button variant="contained" sx={{ mt: 2, ml: 2 }} onClick={handleCreateProject} disabled={!scanResult}>Create Project</Button>
+                {!scanResult && <Alert severity="info" sx={{ mt: 2 }}>Run Scan first, then create project.</Alert>}
                 <Box sx={{ mt: 2, display: 'flex', flexWrap: 'wrap' }}>
                   {statusChips}
                 </Box>
@@ -342,6 +389,31 @@ export default function App() {
             )}
           </Grid>
           <Divider sx={{ my: 3 }} />
+          <Grid container spacing={2} sx={{ mb: 2 }}>
+            <Grid item xs={12} md={6}>
+              <Paper sx={{ p: 2, bgcolor: '#1a2233', color: 'white' }}>
+                <Typography variant="subtitle2">Frontend Activity Log</Typography>
+                <List dense sx={{ maxHeight: 220, overflow: 'auto' }}>
+                  {appLogs.map((line, idx) => (
+                    <ListItem key={`${idx}-${line}`}><ListItemText primaryTypographyProps={{ variant: 'caption' }} primary={line} /></ListItem>
+                  ))}
+                </List>
+              </Paper>
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <Paper sx={{ p: 2, bgcolor: '#1a2233', color: 'white' }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <Typography variant="subtitle2">Backend Log Tail</Typography>
+                  <Button size="small" variant="outlined" onClick={handleLoadBackendLogs}>Load Logs</Button>
+                </Box>
+                <List dense sx={{ maxHeight: 220, overflow: 'auto' }}>
+                  {backendLogs.map((line, idx) => (
+                    <ListItem key={`${idx}-${line}`}><ListItemText primaryTypographyProps={{ variant: 'caption' }} primary={line} /></ListItem>
+                  ))}
+                </List>
+              </Paper>
+            </Grid>
+          </Grid>
           <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
             <Button variant="text" onClick={() => setActiveStep(Math.max(activeStep - 1, 0))}>Back</Button>
             <Button
