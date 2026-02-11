@@ -20,7 +20,7 @@ public class SystemController {
     }
 
     @GetMapping("/logs")
-    public Map<String, List<String>> logs(@RequestParam(defaultValue = "200") int lines) throws IOException {
+    public Map<String, List<String>> logs(@RequestParam(value = "lines", defaultValue = "200") int lines) throws IOException {
         return Map.of("lines", systemLogService.tail(lines));
     }
 }

@@ -47,28 +47,28 @@ public class ProjectController {
     }
 
     @PostMapping("/{id}/extract-subtitles")
-    public List<SubtitleEntry> extractSubtitles(@PathVariable Long id) {
+    public List<SubtitleEntry> extractSubtitles(@PathVariable("id") Long id) {
         jobService.createJob(id, "EXTRACT_SUBTITLES");
         return subtitleService.extractSample(id);
     }
 
     @GetMapping("/{id}/subtitles")
-    public List<SubtitleEntry> listSubtitles(@PathVariable Long id, @RequestParam(required = false) String search) {
+    public List<SubtitleEntry> listSubtitles(@PathVariable("id") Long id, @RequestParam(value = "search", required = false) String search) {
         return subtitleService.search(id, search);
     }
 
     @PostMapping("/{id}/mapping/auto")
-    public List<MappingEntry> autoMapping(@PathVariable Long id) {
+    public List<MappingEntry> autoMapping(@PathVariable("id") Long id) {
         return mappingService.autoMap(id);
     }
 
     @PostMapping("/{id}/mapping/manual")
-    public MappingEntry manualMapping(@PathVariable Long id, @RequestBody Map<String, String> request) {
+    public MappingEntry manualMapping(@PathVariable("id") Long id, @RequestBody Map<String, String> request) {
         return mappingService.manualMap(id, request.get("wemId"), request.get("subtitleKey"), request.get("subtitleText"));
     }
 
     @PostMapping("/{id}/tts/preview")
-    public ResponseEntity<byte[]> ttsPreview(@PathVariable Long id, @RequestBody Map<String, String> request) {
+    public ResponseEntity<byte[]> ttsPreview(@PathVariable("id") Long id, @RequestBody Map<String, String> request) {
         byte[] audio = ttsService.preview(request.get("text"), request.getOrDefault("voice", "neutral_female"));
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=preview.wav")
@@ -77,7 +77,7 @@ public class ProjectController {
     }
 
     @PostMapping("/{id}/build-patch")
-    public PatchManifest buildPatch(@PathVariable Long id) throws IOException {
+    public PatchManifest buildPatch(@PathVariable("id") Long id) throws IOException {
         Project project = projectRepository.findById(id).orElseThrow();
         List<SubtitleEntry> subtitles = subtitleService.getAll(id);
         List<MappingEntry> mappings = mappingService.list(id);
@@ -85,13 +85,13 @@ public class ProjectController {
     }
 
     @PostMapping("/{id}/apply-patch")
-    public PatchService.ApplyResult applyPatch(@PathVariable Long id, @RequestBody PatchManifest manifest) throws IOException {
+    public PatchService.ApplyResult applyPatch(@PathVariable("id") Long id, @RequestBody PatchManifest manifest) throws IOException {
         Project project = projectRepository.findById(id).orElseThrow();
         return patchService.applyPatch(project, manifest);
     }
 
     @PostMapping("/{id}/rollback")
-    public PatchService.RollbackResult rollback(@PathVariable Long id, @RequestBody PatchManifest manifest) throws IOException {
+    public PatchService.RollbackResult rollback(@PathVariable("id") Long id, @RequestBody PatchManifest manifest) throws IOException {
         Project project = projectRepository.findById(id).orElseThrow();
         return patchService.rollback(project, manifest);
     }

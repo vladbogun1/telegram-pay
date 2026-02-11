@@ -14,7 +14,7 @@ public class JobController {
     }
 
     @GetMapping("/{jobId}/events")
-    public SseEmitter stream(@PathVariable Long jobId) {
+    public SseEmitter stream(@PathVariable("jobId") Long jobId) {
         return jobService.createEmitter(jobId);
     }
 }
